@@ -53,14 +53,13 @@ disease_info = {
     }
 }
 
-# Load model
-@st.cache_resource
+# Load model (removed @st.cache_resource)
 def load_model():
     model = pretrainedmodels.__dict__['inceptionresnetv2'](pretrained=None)
     model.last_linear = nn.Linear(model.last_linear.in_features, 7)
     
-    # Load trained weights
-    model.load_state_dict(torch.load('best_model.pth', map_location='cpu'))
+    # Load trained weights - change filename if needed
+    model.load_state_dict(torch.load('inceptionresnetv2_teeth.pth', map_location='cpu'))
     model.eval()
     return model
 
@@ -75,6 +74,9 @@ transform = transforms.Compose([
 ])
 
 def predict(image):
+    if image is None:
+        return "Please upload an image first."
+    
     # Preprocess image
     img_tensor = transform(image).unsqueeze(0)
     
@@ -92,37 +94,37 @@ def predict(image):
     
     # Format output
     result = f"""
-    ## 🔍 Diagnosis: {info['name']}
-    
-    **Confidence:** {confidence_score:.2f}%
-    
-    **Description:** {info['description']}
-    
-    ### 💊 Recommended Medicines:
-    """
+## 🔍 Diagnosis: {info['name']}
+
+**Confidence:** {confidence_score:.2f}%
+
+**Description:** {info['description']}
+
+### 💊 Recommended Medicines:
+"""
     
     for med in info['medicines']:
         result += f"\n- {med}"
     
     result += f"""
-    
-    ### 📋 Medical Advice:
-    {info['advice']}
-    
-    ---
-    
-    ### ⚠️ **IMPORTANT DISCLAIMER**
-    This is an AI-powered tool for informational purposes only. It is NOT a substitute for professional medical diagnosis and treatment. Always consult a qualified healthcare professional for proper medical advice, diagnosis, and treatment.
-    """
+
+### 📋 Medical Advice:
+{info['advice']}
+
+---
+
+### ⚠️ **IMPORTANT DISCLAIMER**
+This is an AI-powered tool for informational purposes only. It is NOT a substitute for professional medical diagnosis and treatment. Always consult a qualified healthcare professional for proper medical advice, diagnosis, and treatment.
+"""
     
     return result
 
 # Create Gradio interface
-with gr.Blocks(title="Oral Disease Classifier") as demo:
+with gr.Blocks(title="Oral Disease RAG Classifier", theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
-    # 🦷 Oral Disease Classification System
+    # 🦷 Oral Disease RAG Classifier
     
-    Upload an image of an oral condition to get AI-powered analysis and medicine recommendations.
+    Upload an image of an oral condition to get AI-powered analysis and medicine recommendations using RAG technology.
     
     **Supported Conditions:**
     - Canker Sores (CaS)
@@ -137,7 +139,7 @@ with gr.Blocks(title="Oral Disease Classifier") as demo:
     with gr.Row():
         with gr.Column():
             image_input = gr.Image(type="pil", label="Upload Oral Image")
-            submit_btn = gr.Button("Analyze", variant="primary")
+            submit_btn = gr.Button("🔍 Analyze", variant="primary", size="lg")
         
         with gr.Column():
             output = gr.Markdown(label="Results")
@@ -149,7 +151,7 @@ with gr.Blocks(title="Oral Disease Classifier") as demo:
     **Model Information:**
     - Architecture: InceptionResNetV2
     - Training Accuracy: ~99.5%
-    - Dataset: Oral Disease Images
+    - Technology: RAG (Retrieval-Augmented Generation)
     
     **Disclaimer:** This tool is for educational and informational purposes only.
     """)
