@@ -122,7 +122,7 @@ This is an AI-powered tool for informational purposes only. It is NOT a substitu
 # Create Gradio interface
 with gr.Blocks(title="Oral Disease RAG Classifier", theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
-    # 🦷 Oral Disease RAG Classifier
+    #  Oral Disease RAG Classifier
     
     Upload an image of an oral condition to get AI-powered analysis and medicine recommendations using RAG technology.
     
