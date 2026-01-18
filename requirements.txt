@@ -5,4 +5,4 @@ Pillow
 pretrainedmodels
 chromadb
 sentence-transformers
-google-generativeai
+google-genai
