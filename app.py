@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 import pretrainedmodels
 import chromadb
 from sentence_transformers import SentenceTransformer
-import google.generativeai as genai
+import google.genai as genai
 import os
 
 # Configure Gemini API - MUST be set in Hugging Face Secrets
