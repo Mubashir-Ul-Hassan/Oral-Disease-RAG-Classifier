@@ -4,3 +4,5 @@ gradio
 Pillow
 pretrainedmodels
 chromadb
+sentence-transformers
+google-generativeai
