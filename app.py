@@ -6,19 +6,18 @@ import torchvision.transforms as transforms
 import pretrainedmodels
 import chromadb
 from sentence_transformers import SentenceTransformer
-import google.genai as genai
+from google import genai
+from google.genai import types
 import os
 
 # Configure Gemini API - MUST be set in Hugging Face Secrets
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    client = genai.Client(api_key=GEMINI_API_KEY)
     print("✅ Gemini API configured successfully")
 else:
     print("⚠️ CRITICAL: GEMINI_API_KEY not found! Set it in Hugging Face Secrets.")
-
-# Initialize Gemini model (cheapest model: gemini-1.5-flash)
-gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    client = None
 
 # Define class names
 class_names = ['CaS', 'CoS', 'Gum', 'MC', 'OC', 'OLP', 'OT']
@@ -371,16 +370,16 @@ def generate_with_gemini(disease_code, disease_name, confidence_score, retrieved
     Use Gemini LLM to generate personalized recommendations based on retrieved documents
     """
     
-    if not GEMINI_API_KEY:
+    if not client:
         return """
-        ❌ **Gemini API Key Not Configured**
-        
-        Please add your GEMINI_API_KEY to Hugging Face Secrets:
-        1. Go to Space Settings
-        2. Click on "Variables and secrets"
-        3. Add new secret: GEMINI_API_KEY = your_api_key
-        4. Restart the Space
-        """
+❌ **Gemini API Key Not Configured**
+
+Please add your GEMINI_API_KEY to Hugging Face Secrets:
+1. Go to Space Settings
+2. Click on "Variables and secrets"
+3. Add new secret: GEMINI_API_KEY = your_api_key
+4. Restart the Space
+"""
     
     if not retrieved_docs:
         return f"⚠️ No medical knowledge found for {disease_name}. Please consult a healthcare provider."
@@ -422,10 +421,12 @@ Generate the response now:"""
 
         # Call Gemini API (RAG Generation Step!)
         print(f"🤖 Calling Gemini API for {disease_code}...")
-        response = gemini_model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                temperature=0.3,  # Lower temperature for medical accuracy
+        
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.3,
                 max_output_tokens=2000,
             )
         )
@@ -486,7 +487,7 @@ Medicine recommendations require prescription and professional oversight. Indivi
         error_msg = f"❌ Gemini API Error: {str(e)}"
         print(error_msg)
         
-        if "API_KEY" in str(e).upper():
+        if "API_KEY" in str(e).upper() or "api key" in str(e).lower():
             return """
 ❌ **Gemini API Key Error**
 
@@ -599,8 +600,9 @@ Please consult a healthcare professional for proper diagnosis and treatment.
 """
 
 # Create Gradio Interface
-with gr.Blocks(title="Oral Disease TRUE RAG Classifier", theme=gr.themes.Soft()) as demo:
-    
+demo = gr.Blocks(title="Oral Disease TRUE RAG Classifier")
+
+with demo:
     gr.Markdown("""
     # 🦷 Oral Disease Classification with TRUE RAG Technology
     
@@ -632,7 +634,7 @@ with gr.Blocks(title="Oral Disease TRUE RAG Classifier", theme=gr.themes.Soft())
                 submit_btn = gr.Button("🔍 Analyze with RAG", variant="primary", size="lg")
                 clear_btn = gr.Button("🔄 Clear", size="lg")
             
-            gr.Markdown("""
+            gr.Markdown(f"""
             ### 🏥 Supported Conditions:
             
             - 🔴 Canker Sores (CaS)
@@ -681,45 +683,6 @@ with gr.Blocks(title="Oral Disease TRUE RAG Classifier", theme=gr.themes.Soft())
     | Citations | No sources | Can show sources |
     | Personalization | Generic | Context-aware |
     
-    ### Technical Implementation:
-    
-    **RAG Pipeline Details:**
-    ```python
-    # 1. Classification
-    disease = cnn_model.predict(image)
-    
-    # 2. Retrieval (RAG Step 1)
-    query = f"Treatment for {disease}"
-    docs = vector_db.semantic_search(query)
-    
-    # 3. Augmentation + Generation (RAG Step 2)
-    prompt = f"Based on: {docs}, provide treatment for {disease}"
-    response = gemini_llm.generate(prompt)
-    ```
-    
-    ### Technology Stack:
-    
-    - **Classification**: PyTorch + InceptionResNetV2 + Transfer Learning
-    - **Embeddings**: sentence-transformers/all-MiniLM-L6-v2 (384 dimensions)
-    - **Vector DB**: ChromaDB (in-memory, persistent-ready)
-    - **LLM**: Google Gemini 1.5 Flash ($0.075 per 1M tokens)
-    - **Framework**: Gradio 4.0 + Hugging Face Spaces
-    - **Knowledge Base**: 7 comprehensive medical documents (evidence-based)
-    
-    ### Cost Efficiency:
-    
-    Using **Gemini 1.5 Flash** (cheapest model):
-    - Input: $0.075 per 1M tokens
-    - Output: $0.30 per 1M tokens
-    - Average query cost: ~$0.001 (very affordable!)
-    
-    ### Data Privacy:
-    
-    - ✅ No images are stored permanently
-    - ✅ Processing happens in real-time
-    - ✅ No personal data collected
-    - ✅ Gemini API requests are encrypted
-    
     ---
     
     ## ⚖️ Ethical AI & Medical Disclaimer
@@ -747,40 +710,11 @@ with gr.Blocks(title="Oral Disease TRUE RAG Classifier", theme=gr.themes.Soft())
     
     ---
     
-    ## 🔧 For Developers
-    
-    ### Setting Up Gemini API:
-    
-    1. Get API key: https://aistudio.google.com/app/apikey
-    2. Add to Hugging Face Secrets:
-       - Go to Space Settings
-       - Variables and secrets
-       - Add: `GEMINI_API_KEY = your_key_here`
-    3. Restart Space
-    
-    ### Extending the System:
-    
-    - Add more medical documents to `medical_knowledge_base`
-    - Fine-tune embedding model for medical domain
-    - Implement citation system showing source documents
-    - Add multi-turn conversation capability
-    - Integrate with medical APIs (drug databases, etc.)
-    
-    ---
-    
-    ### 📚 References & Citations
-    
-    Medical knowledge based on:
-    - Evidence-based clinical guidelines
-    - Peer-reviewed medical literature
-    - Standard treatment protocols
-    - FDA-approved medication information
-    
     *Powered by TRUE RAG Technology | Educational Use Only*
     
-    ---
-    
-    **Model Version**: 1.0.0  
-    **Last Updated**: January 2025  
-    **Maintained by**: AI Research Team  
+    **Model Version**: 1.0.0 | **Last Updated**: January 2025
     """)
+
+# Launch with theme
+if __name__ == "__main__":
+    demo.launch(share=False)
