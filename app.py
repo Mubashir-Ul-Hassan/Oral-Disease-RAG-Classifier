@@ -423,7 +423,7 @@ Generate the response now:"""
         print(f"🤖 Calling Gemini API for {disease_code}...")
         
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.3,
@@ -447,13 +447,13 @@ Generate the response now:"""
 - ✅ **Step 1 - Image Classification**: InceptionResNetV2 CNN (99.5% accuracy)
 - ✅ **Step 2 - Semantic Retrieval**: Searched vector database with sentence-transformers
 - ✅ **Step 3 - Document Retrieval**: Retrieved {len(retrieved_docs)} relevant medical document(s)
-- ✅ **Step 4 - LLM Generation**: Google Gemini 1.5 Flash synthesized personalized response
+- ✅ **Step 4 - LLM Generation**: Google Gemini 2.5 Flash synthesized personalized response
 - ✅ **Knowledge Base**: Evidence-based medical literature
 
 **RAG Technology Stack:**
 - Vector Database: ChromaDB
 - Embeddings: sentence-transformers/all-MiniLM-L6-v2
-- LLM: Google Gemini 1.5 Flash (cheapest model)
+- LLM: Google Gemini 2.5 Flash (cheapest model)
 - Classification: PyTorch + InceptionResNetV2
 
 ---
@@ -620,7 +620,7 @@ with demo:
     1. 🖼️ **Computer Vision**: InceptionResNetV2 (99.5% accuracy)
     2. 📚 **Vector Database**: ChromaDB with medical knowledge embeddings
     3. 🔍 **Semantic Search**: sentence-transformers for intelligent retrieval
-    4. 🤖 **LLM Generation**: Google Gemini 1.5 Flash (cheapest model)
+    4. 🤖 **LLM Generation**: Google Gemini 2.5 Flash (cheapest model)
     5. 💡 **Evidence-Based**: Recommendations from medical literature
     
     Upload an oral disease image for AI-powered diagnosis and treatment recommendations.
