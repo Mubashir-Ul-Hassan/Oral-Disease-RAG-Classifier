@@ -640,7 +640,3 @@ with demo:
 # Launch with theme
 if __name__ == "__main__":
     demo.launch(share=False)
-
-
-so now update this but keep in mind that this code is working now to don't destroy this just makes changes which you tells me like api not working so for this check the code if its not working then makes it working and correct the false information like dosage and other false all information and also this is rag application so make it in this way and i want that the result is to big to make it consice but the result should contain all the required and needed information
-
