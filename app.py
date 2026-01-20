@@ -6,21 +6,21 @@ import torchvision.transforms as transforms
 import pretrainedmodels
 import chromadb
 from sentence_transformers import SentenceTransformer
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import os
 
 # ===============================
-# GEMINI CONFIGURATION (FIXED)
+# GEMINI API CONFIG (OLD SDK - WORKS ON SPACES)
 # ===============================
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel("gemini-2.0-flash")
+    client = genai.Client(api_key=GEMINI_API_KEY)
     print("✅ Gemini API configured successfully")
 else:
-    gemini_model = None
-    print("⚠️ GEMINI_API_KEY not found")
+    client = None
+    print("⚠️ GEMINI_API_KEY missing")
 
 # ===============================
 # CLASS DEFINITIONS
@@ -38,72 +38,68 @@ disease_names = {
 }
 
 # ===============================
-# SAFE MEDICAL KNOWLEDGE BASE
+# SAFE KNOWLEDGE BASE (SUMMARY-ONLY)
 # ===============================
 medical_knowledge_base = [
     {
         "disease": "CaS",
         "document": """
-Canker sores are non-contagious ulcers inside the mouth. 
-Management focuses on symptom relief, reducing inflammation, and avoiding triggers.
-Common approaches include topical oral gels, soothing mouth rinses, maintaining oral hygiene,
-nutritional balance, and avoiding spicy or acidic foods.
-Medical evaluation is advised if ulcers persist, recur frequently, or are unusually large.
+Canker sores are non-contagious shallow ulcers inside the mouth.
+Management focuses on reducing irritation, using soothing mouth rinses, 
+maintaining oral hygiene, and avoiding spicy or acidic foods. 
+Medical review is recommended if sores persist, recur frequently, or become large.
 """
     },
     {
         "disease": "CoS",
         "document": """
-Cold sores are caused by herpes simplex virus and typically occur on or around the lips.
-Management includes early antiviral treatment, keeping the area clean, avoiding touching lesions,
-and minimizing known triggers such as stress or sun exposure.
-Medical care is recommended for severe, frequent, or non-healing outbreaks.
+Cold sores result from herpes simplex virus infection and appear on or around the lips.
+Management includes early use of antiviral creams, keeping lips moisturized,
+and avoiding sun exposure or stress triggers. 
+Seek medical care if outbreaks are frequent or severe.
 """
     },
     {
         "disease": "Gum",
         "document": """
-Gingivostomatitis is an inflammatory condition affecting gums and oral tissues.
-Care focuses on pain control, maintaining hydration, gentle oral hygiene,
-and treating underlying viral or bacterial causes when confirmed by a clinician.
-Urgent care is needed if swallowing becomes difficult or dehydration occurs.
+Gingivostomatitis causes inflammation of gums and oral tissues.
+Care includes pain relief, hydration, gentle oral hygiene, and rest.
+If symptoms include high fever, difficulty swallowing, or dehydration,
+professional medical attention is important.
 """
     },
     {
         "disease": "MC",
         "document": """
 Suspected mouth cancer requires urgent professional evaluation.
-Diagnosis typically involves clinical examination and biopsy.
-Management is handled by specialists and may include surgery, radiation, or systemic therapy.
-Early referral significantly improves outcomes.
+Diagnosis is performed by specialists through examination and biopsy.
+Treatment varies depending on stage and may involve surgery or other therapies.
+Early referral is essential.
 """
     },
     {
         "disease": "OC",
         "document": """
-Oral cancer is a serious condition that must be diagnosed and managed by specialists.
-Early detection and referral are critical.
-Treatment plans depend on staging and individual patient factors.
-This tool does not provide treatment plans for cancer.
+Oral cancer is a serious condition requiring specialist assessment.
+Management decisions depend on staging and patient factors.
+This tool does not provide treatment plans for cancer; early referral is critical.
 """
     },
     {
         "disease": "OLP",
         "document": """
 Oral lichen planus is a chronic inflammatory condition.
-Management focuses on symptom control, reducing inflammation, monitoring changes,
-and avoiding irritants.
-Regular follow-up is important due to a small risk of malignant transformation.
+Management focuses on reducing irritation, maintaining oral hygiene,
+and monitoring for long-term changes. Regular follow-up is recommended.
 """
     },
     {
         "disease": "OT",
         "document": """
-Oral thrush is a fungal infection caused by Candida species.
-Management generally includes antifungal therapy, good oral hygiene,
-addressing risk factors such as diabetes or inhaled steroids,
-and denture care when applicable.
-Medical consultation is recommended if symptoms persist or recur.
+Oral thrush is a fungal infection caused by Candida.
+General care includes antifungal therapy prescribed by a clinician,
+good oral hygiene, and addressing risk factors such as inhaler use or diabetes.
+Seek medical guidance if symptoms persist.
 """
     }
 ]
@@ -125,7 +121,7 @@ def initialize_rag_system():
     return embedder, collection
 
 # ===============================
-# MODEL LOADING
+# LOAD CLASSIFIER
 # ===============================
 def load_classification_model():
     model = pretrainedmodels.__dict__['inceptionresnetv2'](pretrained=None)
@@ -152,17 +148,17 @@ transform = transforms.Compose([
 # ===============================
 def retrieve_knowledge(disease_code):
     results = knowledge_collection.query(
-        query_texts=["management and overview"],
+        query_texts=["educational summary"],
         where={"disease": disease_code},
         n_results=1
     )
     return results["documents"][0] if results["documents"] else []
 
 # ===============================
-# GENERATION (SAFE RAG)
+# GENERATION (USING OLD GEMINI SDK)
 # ===============================
 def generate_with_gemini(disease_name, confidence, docs):
-    if not gemini_model:
+    if not client:
         return "⚠️ Gemini API not configured."
 
     context = "\n".join(docs)
@@ -170,64 +166,78 @@ def generate_with_gemini(disease_name, confidence, docs):
     prompt = f"""
 You are a medical education assistant.
 
-Condition: {disease_name}
-Model Confidence Score: {confidence:.2f}%
+Condition Identified: {disease_name}
+Model Confidence: {confidence:.2f}%
 
-Retrieved Knowledge:
+Retrieved Medical Summary:
 {context}
 
 TASK:
-Provide a concise, structured educational summary including:
-- Brief overview
+Provide a clear, concise educational overview that includes:
+- What the condition generally is
 - General management approach
-- When to seek professional care
+- When to seek medical care
 
 RULES:
-- No medication dosages
-- No treatment prescriptions
-- Educational tone only
-- End with a medical disclaimer
+- NO medication dosages
+- NO prescribing or instructing
+- NO specific treatment regimens
+- Educational guidance ONLY
+- End with a disclaimer
 """
 
-    response = gemini_model.generate_content(prompt)
-    return response.text + """
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                max_output_tokens=800
+            )
+        )
+        text = response.text
+
+        return text + """
 
 ---
-⚠️ **Medical Disclaimer**
+⚠️ **Disclaimer**
 This information is for educational purposes only.
-It does NOT provide diagnosis or treatment.
-Always consult a qualified healthcare professional.
+It is NOT a diagnosis or treatment plan.
+Always consult a licensed healthcare professional.
 """
+
+    except Exception as e:
+        return f"❌ Gemini Error: {str(e)}"
+
 
 # ===============================
 # FULL PIPELINE
 # ===============================
 def predict_with_full_rag(image):
     if image is None:
-        return "⚠️ Please upload an image."
+        return "⚠️ Upload an image."
 
     img_tensor = transform(image).unsqueeze(0)
     with torch.no_grad():
-        output = classification_model(img_tensor)
-        probs = torch.softmax(output, dim=1)
-        confidence, idx = torch.max(probs, 1)
+        out = classification_model(img_tensor)
+        probs = torch.softmax(out, dim=1)
+        conf, idx = torch.max(probs, 1)
 
     disease_code = class_names[idx.item()]
     disease_name = disease_names[disease_code]
-    confidence_score = confidence.item() * 100
 
     docs = retrieve_knowledge(disease_code)
-    return generate_with_gemini(disease_name, confidence_score, docs)
+    return generate_with_gemini(disease_name, conf.item() * 100, docs)
 
 # ===============================
 # GRADIO UI
 # ===============================
-with gr.Blocks(title="Oral Disease TRUE RAG Classifier") as demo:
-    gr.Markdown("# 🦷 Oral Disease Classification with TRUE RAG")
-    image_input = gr.Image(type="pil")
-    output = gr.Markdown()
-    analyze = gr.Button("Analyze with RAG")
+with gr.Blocks(title="Oral Disease TRUE RAG") as demo:
+    gr.Markdown("# 🦷 Oral Disease Classifier (Educational RAG System)")
+    img = gr.Image(type="pil")
+    out = gr.Markdown()
+    btn = gr.Button("Analyze")
 
-    analyze.click(predict_with_full_rag, image_input, output)
+    btn.click(predict_with_full_rag, img, out)
 
 demo.launch()
