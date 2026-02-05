@@ -1,53 +1,109 @@
+# 🦷 Oral Disease Classification System
+
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/MubashirUlHassan/Oral-Disease-RAG-Classifier)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+An AI-powered web application for classifying oral diseases using deep learning with medicine recommendations.
+
+## 🔗 Live Demo
+
+**Try it now:** [https://huggingface.co/spaces/MubashirUlHassan/Oral-Disease-RAG-Classifier](https://huggingface.co/spaces/MubashirUlHassan/Oral-Disease-RAG-Classifier)
+
 ---
-title: Oral Disease Classifier
-emoji: 🚀
-colorFrom: blue
-colorTo: green
-sdk: gradio
-sdk_version: 6.3.0
-app_file: app.py
-pinned: false
-license: mit
-short_description: Oral disease diagnosis + RAG medicine recommendations
+
+## ✨ Features
+
+- 🔍 **Disease Classification** - Classifies 7 types of oral diseases
+- 💊 **Medicine Recommendations** - RAG-powered treatment suggestions
+- 📊 **Confidence Scores** - Probability for each condition
+- ⚡ **Fast Inference** - Results in ~1 second
+
 ---
 
-# Oral Disease Classification System
+## 🦠 Supported Conditions
 
-An AI-powered web application for classifying oral diseases using deep learning.
+| Code | Condition | Description |
+|------|-----------|-------------|
+| CaS | Canker Sores | Painful mouth ulcers |
+| CoS | Cold Sores | Herpes simplex virus blisters |
+| Gum | Gingivostomatitis | Gum and mouth inflammation |
+| MC | Mouth Cancer | Malignant oral tumors |
+| OC | Oral Cancer | Cancer in oral cavity |
+| OLP | Oral Lichen Planus | Chronic inflammatory condition |
+| OT | Oral Thrush | Fungal infection (Candida) |
 
-## Features
+---
 
-- 🔍 Classifies 7 types of oral diseases
-- 💊 Provides medicine recommendations
-- 📊 Shows confidence scores
-- ⚡ Fast inference (~1 second)
+## 🚀 Quick Start
 
-## Supported Conditions
+### Run Locally
 
-1. **CaS** - Canker Sores
-2. **CoS** - Cold Sores
-3. **Gum** - Gingivostomatitis
-4. **MC** - Mouth Cancer
-5. **OC** - Oral Cancer
-6. **OLP** - Oral Lichen Planus
-7. **OT** - Oral Thrush
+```bash
+# Clone the repository
+git clone https://github.com/Mubashir-Ul-Hassan/Oral-Disease-RAG-Classifier.git
+cd Oral-Disease-RAG-Classifier
 
-## Model Information
+# Install dependencies
+pip install -r requirements.txt
 
-- **Architecture:** InceptionResNetV2
-- **Training Accuracy:** 99.51%
-- **Dataset:** Custom oral disease dataset (5,143 images)
+# Run the app
+python app.py
+```
 
-## Usage
+Open [http://localhost:7860](http://localhost:7860) in your browser.
 
-1. Upload an image of an oral condition
-2. Click "Analyze"
-3. View the diagnosis and recommendations
+---
 
-## Disclaimer
+## 🤖 Model Information
 
-⚠️ This is an AI-powered tool for informational purposes only. It is NOT a substitute for professional medical diagnosis and treatment. Always consult a qualified healthcare professional.
+| Metric | Value |
+|--------|-------|
+| Architecture | InceptionResNetV2 |
+| Training Accuracy | 99.51% |
+| Dataset Size | 5,143 images |
+| Classes | 7 oral conditions |
 
-## Citation
+---
 
-Based on research: "Mouth and oral disease classification using InceptionResNetV2 method"
+## 📖 How to Use
+
+1. 📤 Upload an image of an oral condition
+2. 🔍 Click "Analyze"
+3. 📊 View the diagnosis and confidence scores
+4. 💊 Get medicine recommendations
+
+---
+
+## 🛠️ Tech Stack
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![Gradio](https://img.shields.io/badge/Gradio-F97316?style=for-the-badge)
+![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
+
+---
+
+## ⚠️ Disclaimer
+
+> **This is an AI-powered tool for informational purposes only.** It is NOT a substitute for professional medical diagnosis and treatment. Always consult a qualified healthcare professional for any medical concerns.
+
+---
+
+## 📄 Citation
+
+Based on research: *"Mouth and oral disease classification using InceptionResNetV2 method"*
+
+---
+
+## 👤 Author
+
+**Mubashir Ul Hassan**
+
+- 🤗 [Hugging Face](https://huggingface.co/MubashirUlHassan)
+- 💼 [LinkedIn](https://linkedin.com/in/mubashir-ul-hassan)
+- 🐙 [GitHub](https://github.com/Mubashir-Ul-Hassan)
+
+---
+
+⭐ **If you found this helpful, please star the repository!**
